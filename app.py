@@ -3,7 +3,7 @@ import ollama
 import streamlit as st
 
 # Cargar dataset
-df = pd.read_csv("Pensum Ingeniería de sistemas y computación.csv", sep=";")
+df = pd.read_csv("Pénsum - Ingeniería de sistemas y computación.csv", sep=";")
 df.columns = df.columns.str.strip()
 
 # Convertir filas en texto contextual
@@ -34,8 +34,9 @@ def generar_respuesta(pregunta):
 
     contexto = "\n".join(documentos) 
 
+# Cambiar la carrera para pruebas
     prompt = f"""
-    Actúa como un asesor académico experto en Ingeniería de Sistemas y Computación.
+    Actúa como un asesor académico experto en Ingeniería de sistemas y computación.
 
     Tu función es:
     - Recomendar materias, teniendo en cuenta los requisitos
