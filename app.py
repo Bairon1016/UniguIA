@@ -3,7 +3,7 @@ import ollama
 import streamlit as st
 
 # Cargar dataset
-df = pd.read_csv("Pénsum - Ingeniería de sistemas y computación.csv", sep=";")
+df = pd.read_csv("Pénsum - Contaduría pública.csv", sep=";")
 df.columns = df.columns.str.strip()
 
 # Convertir filas en texto contextual
@@ -23,7 +23,7 @@ def convertir_a_texto(row):
     return f"""
     Materia: {row['Nombre']}
     Código: {row['Codigo']}
-    Semestre: {row['Periodo']}
+    Semestre: {row['Semestre']}
     Créditos: {row['Creditos']}
     Prerrequisitos: {requisitos_texto}
     """
@@ -36,7 +36,7 @@ def generar_respuesta(pregunta):
 
 # Cambiar la carrera para pruebas
     prompt = f"""
-    Actúa como un asesor académico experto en Ingeniería de sistemas y computación.
+    Actúa como un asesor académico experto en Contaduría pública.
 
     Tu función es:
     - Recomendar materias, teniendo en cuenta los requisitos
