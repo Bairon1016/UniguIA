@@ -1,12 +1,11 @@
 import re
 import pandas as pd
 import ollama
-import streamlit as st
 from rapidfuzz import fuzz
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
-# ─────────────────────────────────────────
-# Configuración de carreras
-# ─────────────────────────────────────────
+# Configuración de carreras y prompts personalizados
 
 CARRERAS = {
     "Administración de empresas": {
@@ -64,7 +63,7 @@ CARRERAS = {
 MAX_MATERIAS_CONTEXTO = 30
 UMBRAL_SIMILITUD = 55
 
-# Palabras escritas para detectar semestres mencionados en texto
+# Detección por similitud en palabras (Semestres)
 
 SEMESTRES_TEXTO = {
     "primer":   1, "primero":  1, "1er": 1, "1ro": 1,
@@ -79,16 +78,9 @@ SEMESTRES_TEXTO = {
     "décimo":  10, "decimo": 10, "10mo": 10,
 }
 
-# ─────────────────────────────────────────
-# Funciones
-# ─────────────────────────────────────────
+# Funciones lógicas del modelo
 
 def detectar_semestre(pregunta: str) -> int | None:
-    """
-    Detecta si la pregunta menciona un semestre específico.
-    Acepta formatos como: '3', 'tercero', 'tercer', '3er', '3ro', etc.
-    Retorna el número de semestre o None si no detecta ninguno.
-    """
     texto = pregunta.lower()
 
     # Buscar número directamente: "semestre 3", "3 semestre", "3er semestre"
@@ -107,7 +99,6 @@ def detectar_semestre(pregunta: str) -> int | None:
 
 
 def cargar_pensum(csv_path: str) -> tuple[pd.DataFrame, list[str]]:
-    """Carga el CSV y devuelve el DataFrame y la lista de strings contextuales."""
     df = pd.read_csv(csv_path, sep=";")
     df.columns = df.columns.str.strip()
     columnas_requisitos = [col for col in df.columns if "Requisito" in col]
@@ -133,19 +124,10 @@ def filtrar_contexto(
     documentos: list[str],
     max_items: int = MAX_MATERIAS_CONTEXTO,
 ) -> tuple[list[str], str | None]:
-    """
-    Estrategia 1 — Semestre detectado:
-        Devuelve TODAS las materias de ese semestre sin límite.
-        Así nunca se trunca una lista de materias por semestre.
 
-    Estrategia 2 — Sin semestre detectado:
-        Búsqueda fuzzy combinada (nombre + prerrequisitos + keywords).
-
-    Retorna (lista_de_docs_filtrados, semestre_detectado_o_None).
-    """
     semestre = detectar_semestre(pregunta)
 
-    # ── Estrategia 1: filtro exacto por semestre ──────────────────────────
+    # Filtro exacto por semestre
     if semestre is not None:
         mascara = df["Semestre"].astype(str).str.strip() == str(semestre)
         indices = df[mascara].index.tolist()
@@ -153,7 +135,7 @@ def filtrar_contexto(
         if indices:
             return [documentos[i] for i in indices], str(semestre)
 
-    # ── Estrategia 2: búsqueda fuzzy ─────────────────────────────────────
+    # Búsqueda fuzzy
     pregunta_lower = pregunta.lower()
     palabras = [p for p in pregunta_lower.split() if len(p) > 3]
     columnas_requisitos = [col for col in df.columns if "Requisito" in col]
@@ -233,6 +215,7 @@ def generar_respuesta(
         "Responde de forma clara, concisa, profesional y académica."
     )
 
+    # Llamar el modelo y configuracion de parametros de tokenización y creatividad
     response = ollama.generate(
         model="llama3.1:8b",
         prompt=prompt,
@@ -245,54 +228,51 @@ def generar_respuesta(
     return response["response"]
 
 
-# ─────────────────────────────────────────
-# Interfaz Streamlit
-# ─────────────────────────────────────────
+# API FastAPI
 
-st.title("UniguIA")
-st.write("¡Mejora tu proceso de matrícula académica en la UdeC con IA!")
+app = FastAPI(title="UniguIA API", version="1.0.0")
 
-st.subheader("1. Selecciona tu carrera")
 
-if "carrera_seleccionada" not in st.session_state:
-    st.session_state.carrera_seleccionada = None
+class ConsultaRequest(BaseModel):
+    carrera: str
+    pregunta: str
 
-cols = st.columns(len(CARRERAS))
-for col, nombre_carrera in zip(cols, CARRERAS.keys()):
-    with col:
-        seleccionada = st.session_state.carrera_seleccionada == nombre_carrera
-        if st.button(
-            nombre_carrera,
-            key=f"btn_{nombre_carrera}",
-            type="primary" if seleccionada else "secondary",
-            use_container_width=True,
-        ):
-            st.session_state.carrera_seleccionada = nombre_carrera
-            st.rerun()
 
-if st.session_state.carrera_seleccionada:
-    st.success(f"Carrera seleccionada: **{st.session_state.carrera_seleccionada}**")
+class ConsultaResponse(BaseModel):
+    respuesta: str
 
-    st.subheader("2. Haz tu pregunta")
-    pregunta_usuario = st.text_input("¿Cuál es tu pregunta?")
 
-    if st.button("Enviar", type="primary"):
-        if pregunta_usuario:
-            config = CARRERAS[st.session_state.carrera_seleccionada]
-            with st.spinner("Consultando el modelo..."):
-                try:
-                    df, documentos = cargar_pensum(config["csv"])
-                    respuesta = generar_respuesta(
-                        pregunta_usuario, df, documentos, config["prompt"]
-                    )
-                    st.write("### Respuesta:")
-                    st.write(respuesta)
-                except ollama.ResponseError as e:
-                    st.error(
-                        f"Error al consultar el modelo: {e}\n\n"
-                        "Reduce `num_ctx` a 2048 en `generar_respuesta` si persiste."
-                    )
-        else:
-            st.warning("Por favor escribe una pregunta.")
-else:
-    st.info("Selecciona tu carrera para comenzar.")
+@app.get("/carreras")
+def listar_carreras() -> list[str]:
+
+    # Devuelve la lista de carreras
+    return list(CARRERAS.keys())
+
+
+@app.post("/consultar", response_model=ConsultaResponse)
+def consultar(body: ConsultaRequest) -> ConsultaResponse:
+
+    # Recibe la carrera y la pregunta del estudiante y retorna la respuesta generada por el modelo.
+    if body.carrera not in CARRERAS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Carrera '{body.carrera}' no encontrada. "
+                   f"Carreras válidas: {list(CARRERAS.keys())}",
+        )
+
+    config = CARRERAS[body.carrera]
+    try:
+        df, documentos = cargar_pensum(config["csv"])
+        respuesta = generar_respuesta(body.pregunta, df, documentos, config["prompt"])
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail=f"No se encontró el archivo CSV para '{body.carrera}'.",
+        )
+    except ollama.ResponseError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Error al consultar el modelo Ollama: {e}",
+        )
+
+    return ConsultaResponse(respuesta=respuesta)
