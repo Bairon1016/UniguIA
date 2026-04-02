@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniguIA</title>
+<link rel="icon" href="Logo UniguIA sin fondo.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #e6f4fb;
+    --bg-sb:     #cce8f5;
+    --bg-card:   #ffffff;
+    --bg-input:  #f0f9ff;
+    --bub-user:  #0077b6;
+    --bub-bot:   #daeef8;
+    --border:    #8ecae6;
+    --accent:    #0077b6;
+    --accent2:   #00b4d8;
+    --text:      #082d42;
+    --muted:     #3a8aaa;
+    --btn-act:   #0077b6;
+    --btn-act-t: #ffffff;
+    --btn-idl:   #b8e2f5;
+    --btn-idl-t: #0a4f6e;
+    --btn-idl-b: #8ecae6;
+    --hdr-bg:    linear-gradient(135deg,#c5e8f7 0%,#e2f5ff 100%);
+    --glow:      0 0 10px #00b4d820;
+    --scr-th:    #7abcd6;
+    --shadow:    0 2px 8px rgba(0,100,150,0.10);
+  }
+  [data-theme="dark"] {
+    --bg:        #0b1320;
+    --bg-sb:     #080e1a;
+    --bg-card:   #0f1c2e;
+    --bg-input:  #0d1a2a;
+    --bub-user:  #0d3b5e;
+    --bub-bot:   #0f2235;
+    --border:    #1a4060;
+    --accent:    #00c2e0;
+    --accent2:   #0088bb;
+    --text:      #cce8f5;
+    --muted:     #4a7a96;
+    --btn-act:   #00c2e0;
+    --btn-act-t: #040f18;
+    --btn-idl:   #0d1f30;
+    --btn-idl-t: #4a9ab8;
+    --btn-idl-b: #1a3a55;
+    --hdr-bg:    linear-gradient(135deg,#050e1a 0%,#0a1828 100%);
+    --glow:      0 0 14px #00c2e030;
+    --scr-th:    #1a4060;
+    --shadow:    0 2px 12px rgba(0,0,0,0.40);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+  /* ── LAYOUT ── */
+  #app { display: flex; height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 200px; min-width: 300px;
+    background: var(--bg-sb);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  #sidebar::-webkit-scrollbar { width: 3px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--scr-th); border-radius: 3px; }
+
+  .sb-header {
+    background: var(--hdr-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 12px 13px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .sb-logo { width: 180px; height: 180px; object-fit: contain; display: block; transform: translateX(47px)}
+  .sb-title { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--accent); letter-spacing: .09em; transform: translateY(-12px)}
+  .sb-sub   { font-size: 1rem; color: var(--muted); letter-spacing: .05em; margin-top: 2px; transform: translateY(-10px)}
+
+  .sb-toggle {
+    padding: 20px 10px 4px;
+    flex-shrink: 0;
+  }
+  #btnToggle {
+    width: 100%; background: transparent; border: 1px solid var(--border);
+    border-radius: 20px; color: var(--muted); font-size: 1rem;
+    padding: 15px 15px; cursor: pointer; font-family: 'Exo 2', sans-serif;
+    transition: border-color .2s, color .2s;
+    transform: translateY(-7px)
+  }
+  #btnToggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sb-sep { border: none; border-top: 0.5px solid var(--border); opacity: .45; margin: 2px 0; flex-shrink: 0}
+
+  .sb-label {
+    font-size: 1rem; font-weight: 900; color: var(--accent);
+    letter-spacing: .09em;
+    padding: 15px 14px 20px; flex-shrink: 0;
+    text-align: center; 
+  }
+
+  .sb-btns { padding: 0 8px 12px; display: flex; flex-direction: column; gap: 5px; }
+
+  .carrera-btn {
+    width: 100%; text-align: left;
+    background: var(--btn-idl); color: var(--btn-idl-t);
+    border: 1px solid var(--btn-idl-b); border-radius: 7px;
+    font-family: 'Exo 2', sans-serif; font-size: .9rem; font-weight: 500;
+    padding: 9px 12px; cursor: pointer; line-height: 1.3;
+    transition: background .18s, border-color .18s, transform .15s, box-shadow .18s;
+    margin-bottom: 15px;
+    text-align: center; 
+  }
+  .carrera-btn:hover {
+    background: var(--accent2); color: #fff;
+    border-color: var(--accent); box-shadow: var(--glow);
+    transform: translateX(3px);
+  }
+  .carrera-btn.active {
+    background: var(--btn-act); color: var(--btn-act-t);
+    border-color: var(--accent); box-shadow: var(--glow); font-weight: 700;
+    transform: translateX(3px);
+  }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 0 18px 12px; min-width: 0; overflow: hidden;
+  }
+
+  /* Header */
+  .main-header {
+    background: var(--hdr-bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 11px 18px; margin: 10px 0 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+  }
+  .hdr-left  { font-family:'Rajdhani',sans-serif; font-size:1.2rem; font-weight:600; color:var(--muted); letter-spacing:.04em; }
+  .hdr-right { font-size:.9rem; color:var(--muted); text-align:right; line-height:1.5; }
+
+  /* Chat box */
+  #chatBox {
+    flex: 1;
+    max-height: calc(100vh - 100px); background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-y: auto;
+    scroll-behavior: smooth; margin-bottom: 8px;
+    text-align: left; 
+  }
+  #chatBox::-webkit-scrollbar { width: 4px; }
+  #chatBox::-webkit-scrollbar-thumb { background: var(--scr-th); border-radius: 3px; }
+
+  .chat-empty {
+    height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--muted); font-size: .87rem; gap: 10px; opacity: .6;
+  }
+  .chat-empty span:first-child { font-size: 2rem; }
+
+  /* Bubbles */
+  .bubble { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 13px; animation: fadeUp .25s ease; }
+  .bubble.user { flex-direction: row-reverse; }
+  .b-icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-input); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; flex-shrink: 0;
+  }
+  .b-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* o cover */
+}
+  .b-text {
+    max-width: 80%; padding: 9px 13px;
+    font-size: .87rem; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .bubble.bot .b-text {
+    background: var(--bub-bot); border: 1px solid var(--border);
+    color: var(--text); border-radius: 3px 10px 10px 10px;
+  }
+  .bubble.user .b-text {
+    background: var(--bub-user); color: #e6f4ff;
+    border-radius: 10px 3px 10px 10px; text-align: right;
+  }
+
+  /* Typing indicator */
+  .typing {
+  align-items: center; 
+}
+  .typing .b-text {
+    background: var(--bub-bot); border: 1px solid var(--border);
+    border-radius: 3px 10px 10px 10px; padding: 28px 30px;
+    display: flex;
+    align-items: center;
+  }
+  .dots { display: flex; gap: 4px; width: 180px; align-items: center; justify-content: center}
+  .dots span {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted); animation: bounce .9s infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .30s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+
+  /* Input bar */
+  #inputBar {
+    display: flex; gap: 0; flex-shrink: 0;
+    border-radius: 22px; overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+  }
+  #inputBar.hidden { visibility: hidden; }
+
+  #pregunta {
+    flex: 1; background: var(--bg-input);
+    border: 1px solid var(--border); border-right: none;
+    border-radius: 22px 0 0 22px; color: var(--text);
+    font-family: 'Exo 2', sans-serif; font-size: 1rem;
+    padding: 0 18px 4px; height: 42px; outline: none;
+    transition: border-color .2s;
+  }
+  #pregunta:focus { border-color: var(--accent); box-shadow: var(--glow); }
+  #pregunta::placeholder { color: var(--muted); opacity: .7; }
+
+  #btnEnviar {
+    background: var(--accent); color: #fff;
+    border: 1px solid var(--accent); border-radius: 0 22px 22px 0;
+    font-family: 'Exo 2', sans-serif; font-weight: 700;
+    font-size: 1rem; padding: 0 22px 4px; height: 42px;
+    cursor: pointer; letter-spacing: .05em;
+    transition: background .2s; white-space: nowrap;
+  }
+  #btnEnviar:hover { background: var(--accent2); border-color: var(--accent2)}
+  #btnEnviar:disabled { opacity: .5; cursor: not-allowed; }
+
+  .model-tag {
+    font-size: .64rem; color: var(--text); text-align: right;
+    padding-top: 3px; letter-spacing: .05em; opacity: .6; flex-shrink: 0;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px)}
+    to   { opacity: 1; transform: translateY(0)}
+  }
+
+  /* ── ERROR TOAST ── */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #c0392b; color: #fff; padding: 10px 18px;
+    border-radius: 8px; font-size: .83rem;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+    z-index: 999;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body data-theme="light">
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-header">
+      <img class="sb-logo" src="Logo UniguIA sin fondo.png" alt="UniguIA"
+           onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block'"/>
+      <div id="logoFallback" style="display:none;font-size:2.4rem;margin-bottom:4px;">🎓</div>
+      <div class="sb-title">UniguIA</div>
+      <div class="sb-sub">Asesor académico basado en IA · UdeC</div>
+    </div>
+
+    <div class="sb-toggle">
+      <button id="btnToggle">🌃&nbsp;Modo oscuro</button>
+    </div>
+
+    <hr class="sb-sep"/>
+    <div class="sb-label">Selecciona tu carrera</div>
+
+    <div class="sb-btns" id="carrerasBtns">
+      <div style="font-size:.78rem;color:var(--muted);padding:6px 4px;">Cargando carreras…</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <div class="main-header">
+      <div class="hdr-left" id="hdrLeft">Selecciona una carrera para comenzar</div>
+      <div class="hdr-right">¡Mejora tu proceso de matrícula<br>académica en la UdeC con IA!</div>
+    </div>
+
+    <div id="inputBar">
+      <input id="pregunta" type="text" placeholder="Escribe tu pregunta aquí…" autocomplete="off"/>
+      <button id="btnEnviar">Enviar</button>
+    </div>
+
+    <div id="chatBox">
+      <div class="chat-empty" id="emptyMsg">
+        <span>👨🏻‍💻📚👩🏻‍💻</span>
+        <span>Selecciona tu carrera en el menú lateral<br>para comenzar a chatear con tu asesor UniguIA.</span>
+      </div>
+    </div>
+
+    <div class="model-tag">@llama3.1:8b</div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const BACKEND = 'http://localhost:8000';
+let carreraActiva = null;
+let esperando = false;
+let modoOscuro = false;
+
+// ── TEMA ─────────────────────────────────
+const btnToggle = document.getElementById('btnToggle');
+btnToggle.addEventListener('click', () => {
+  modoOscuro = !modoOscuro;
+  document.body.setAttribute('data-theme', modoOscuro ? 'dark' : 'light');
+  btnToggle.textContent = modoOscuro ? '🌅\u00A0 Modo claro' : '🌃\u00A0 Modo oscuro';
+});
+
+// ── TOAST ─────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── CARRERAS ─────────────────────────────
+async function cargarCarreras() {
+  try {
+    const res = await fetch(`${BACKEND}/carreras`);
+    if (!res.ok) throw new Error();
+    const carreras = await res.json();
+    renderCarreras(carreras);
+  } catch {
+    document.getElementById('carrerasBtns').innerHTML =
+      '<div style="font-size:.76rem;color:#c0392b;padding:6px 4px;">Backend no disponible</div>';
+  }
+}
+
+function renderCarreras(carreras) {
+  const cont = document.getElementById('carrerasBtns');
+  cont.innerHTML = '';
+  carreras.forEach(nombre => {
+    const btn = document.createElement('button');
+    btn.className = 'carrera-btn';
+    btn.textContent = nombre;
+    btn.addEventListener('click', () => seleccionarCarrera(nombre, btn));
+    cont.appendChild(btn);
+  });
+}
+
+function seleccionarCarrera(nombre, btn) {
+  if (carreraActiva === nombre) return;
+  carreraActiva = nombre;
+
+  // Actualizar botones
+  document.querySelectorAll('.carrera-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Actualizar header
+  document.getElementById('hdrLeft').textContent = '¿Cuál es tu pregunta?';
+
+  // Limpiar chat
+  const box = document.getElementById('chatBox');
+  box.innerHTML = `
+    <div class="chat-empty" id="emptyMsg">
+      <span>💭</span>
+      <span>Haz tu primera pregunta sobre<br><strong>${nombre}</strong></span>
+    </div>`;
+
+  // Mostrar input
+  document.getElementById('inputBar').classList.remove('hidden');
+  document.getElementById('pregunta').focus();
+}
+
+// ── CHAT ─────────────────────────────────
+function addBubble(texto, rol) {
+  const box = document.getElementById('chatBox');
+  const empty = document.getElementById('emptyMsg');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = `bubble ${rol}`;
+  div.innerHTML = `
+    <div class="b-icon">${rol === 'user' 
+        ? '👤' 
+        : '<img src="Logo UniguIA sin fondo.png" alt="bot">'}</div>
+    <div class="b-text">${escHtml(texto)}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const box = document.getElementById('chatBox');
+  const div = document.createElement('div');
+  div.className = 'bubble bot typing';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+  <div class="b-icon">
+    <img src="Logo UniguIA sin fondo.png" alt="bot">
+  </div>
+  <div class="b-text">
+    <div class="dots"><span></span><span></span><span></span></div>
+  </div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingIndicator');
+  if (t) t.remove();
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function enviar() {
+  if (esperando || !carreraActiva) return;
+  const input = document.getElementById('pregunta');
+  const pregunta = input.value.trim();
+  if (!pregunta) return;
+
+  input.value = '';
+  esperando = true;
+  document.getElementById('btnEnviar').disabled = true;
+
+  addBubble(pregunta, 'user');
+  addTyping();
+
+  try {
+    const res = await fetch(`${BACKEND}/consultar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ carrera: carreraActiva, pregunta })
+    });
+    removeTyping();
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      addBubble((err.detail || 'Error del servidor.'), 'bot');
+    } else {
+      const data = await res.json();
+      addBubble(data.respuesta, 'bot');
+    }
+  } catch {
+    removeTyping();
+    addBubble('No se puede conectar al backend. ¿Está corriendo en localhost:8000?', 'bot');
+  }
+
+  esperando = false;
+  document.getElementById('btnEnviar').disabled = false;
+  document.getElementById('pregunta').focus();
+}
+
+document.getElementById('btnEnviar').addEventListener('click', enviar);
+document.getElementById('pregunta').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
+});
+
+// Init
+cargarCarreras();
+</script>
+</body>
+</html>

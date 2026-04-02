@@ -4,6 +4,7 @@ import ollama
 from rapidfuzz import fuzz
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configuración de carreras y prompts personalizados
 
@@ -232,6 +233,12 @@ def generar_respuesta(
 
 app = FastAPI(title="UniguIA API", version="1.0.0")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Acepta peticiones de cualquier origen
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ConsultaRequest(BaseModel):
     carrera: str
