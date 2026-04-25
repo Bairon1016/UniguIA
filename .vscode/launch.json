@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["Backend:app", "--reload", "--port", "8000"],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "Application startup complete",
+        "uriFormat": "http://localhost:8080/Frontend.html"
+      }
+    },
+    {
+      "name": "Frontend",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "http.server",
+      "args": ["8080"],
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "UniguIA",
+      "configurations": [
+        "Backend",
+        "Frontend"
+      ],
+      "stopAll": true
+    }
+  ]
+}
