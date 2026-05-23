@@ -28,6 +28,7 @@
     --glow:      0 0 10px #00b4d820;
     --scr-th:    #7abcd6;
     --shadow:    0 2px 8px rgba(0,100,150,0.10);
+    --sb-width: 300px;
   }
   [data-theme="dark"] {
     --bg:        #0b1320;
@@ -52,18 +53,23 @@
     --shadow:    0 2px 12px rgba(0,0,0,0.40);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+  html { height: 100%; }
+  body { height: 100%; font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
   /* ── LAYOUT ── */
-  #app { display: flex; height: 100vh; }
+  #app { display: flex; height: 100dvh; }
 
   /* ── SIDEBAR ── */
   #sidebar {
-    width: 200px; min-width: 300px;
+    width: var(--sb-width);
+    min-width: var(--sb-width);
     background: var(--bg-sb);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
     overflow-y: auto;
+    flex-shrink: 0;
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    z-index: 100;
   }
   #sidebar::-webkit-scrollbar { width: 3px; }
   #sidebar::-webkit-scrollbar-thumb { background: var(--scr-th); border-radius: 3px; }
@@ -75,7 +81,7 @@
     text-align: center;
     flex-shrink: 0;
   }
-  .sb-logo { width: 180px; height: 180px; object-fit: contain; display: block; transform: translateX(47px); margin-bottom: 15px}
+  .sb-logo { width: 180px; height: 180px; object-fit: contain; display: block; margin: 0 auto 10px; margin-bottom: 15px}
   .sb-title { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--accent); letter-spacing: .09em; transform: translateY(-12px)}
   .sb-sub   { font-size: 1rem; color: var(--muted); letter-spacing: .05em; margin-top: 2px; transform: translateY(-10px)}
 
@@ -90,6 +96,7 @@
     transition: border-color .2s, color .2s;
     transform: translateY(-7px)
   }
+
   #btnToggle:hover { border-color: var(--accent); color: var(--accent); }
 
   .sb-sep { border: none; border-top: 0.5px solid var(--border); opacity: .45; margin: 2px 0; flex-shrink: 0}
@@ -145,11 +152,11 @@
   /* Chat box */
   #chatBox {
     flex: 1;
-    max-height: calc(100vh - 100px); background: var(--bg-card);
+    background: var(--bg-card);
     border: 1px solid var(--border); border-radius: 10px;
     padding: 16px 18px; overflow-y: auto;
     scroll-behavior: smooth; margin-bottom: 8px;
-    text-align: left; 
+    text-align: left; min-height: 0;
   }
   #chatBox::-webkit-scrollbar { width: 4px; }
   #chatBox::-webkit-scrollbar-thumb { background: var(--scr-th); border-radius: 3px; }
@@ -249,9 +256,28 @@
   #btnEnviar:hover { background: var(--accent2); border-color: var(--accent2)}
   #btnEnviar:disabled { opacity: .5; cursor: not-allowed; }
 
+  .tags-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-top: 3px;
+  }
+
   .model-tag {
-    font-size: .64rem; color: var(--text); text-align: right;
-    padding-top: 3px; letter-spacing: .05em; opacity: .6; flex-shrink: 0;
+    font-size: .64rem;
+    color: var(--text);
+    letter-spacing: .05em;
+    opacity: .6;
+    flex-shrink: 0;
+  }
+
+  .model-tag1 {
+    font-size: .64rem;
+    color: var(--text);
+    letter-spacing: .05em;
+    opacity: .6;
+    flex-shrink: 0;
   }
 
   @keyframes fadeUp {
@@ -268,9 +294,72 @@
     z-index: 999;
   }
   #toast.show { opacity: 1; }
+
+  /*OVERLAY (mobile)*/
+#sidebarOverlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+#sidebarOverlay.visible { display: block; }
+
+/*MOBILE TOP BAR*/
+#mobileBar {
+  display: none;
+  align-items: center; gap: 10px;
+  padding: 10px 0 4px;
+  flex-shrink: 0;
+}
+#btnHamburger {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  color: var(--accent); font-size: 1.3rem; line-height: 1;
+  flex-shrink: 0;
+}
+#mobileTitle {
+  font-family: 'Rajdhani', sans-serif; font-size: 1.2rem;
+  font-weight: 700; color: var(--accent); letter-spacing: .08em;
+}
+
+/*Tablet (≤900px)*/
+@media (max-width: 900px) {
+  :root { --sb-width: 240px; }
+  .hdr-right { display: none; }
+}
+
+/*Mobile (≤640px)*/
+@media (max-width: 640px) {
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #mobileBar { display: flex; }
+  #main { padding: 0 12px 10px; }
+  .main-header { padding: 9px 12px; margin: 4px 0 6px; flex-wrap: wrap; gap: 6px; }
+  .hdr-left  { font-size: .95rem; }
+  .hdr-right { display: none; }
+  .b-text { max-width: 90%; font-size: .83rem; }
+  #pregunta  { font-size: .9rem; height: 40px; padding: 0 14px 3px; }
+  #btnEnviar { font-size: .9rem; padding: 0 16px 3px; height: 40px; }
+}
+
+/*Pantallas muy pequeñas (≤380px)*/
+@media (max-width: 380px) {
+  :root { --sb-width: 85vw; }
+  .hdr-left { font-size: .88rem; }
+  #pregunta  { font-size: .85rem; }
+  #btnEnviar { font-size: .85rem; padding: 0 12px 3px; }
+}
+
 </style>
 </head>
 <body data-theme="light">
+<div id="sidebarOverlay"></div>
 <div id="app">
 
   <!-- SIDEBAR -->
@@ -297,6 +386,10 @@
 
   <!-- MAIN -->
   <main id="main">
+    <div id="mobileBar">
+      <button id="btnHamburger" aria-label="Abrir menú">☰</button>
+      <span id="mobileTitle">UniguIA</span>
+    </div>
     <div class="main-header">
       <div class="hdr-left" id="hdrLeft">Selecciona una carrera para comenzar</div>
       <div class="hdr-right">¡Mejora tu proceso de matrícula<br>académica en la UdeC con IA!</div>
@@ -314,17 +407,40 @@
       </div>
     </div>
 
-    <div class="model-tag">@llama3.1:8b</div>
+    <div class="tags-container">
+      <span class="model-tag1">By: B.Martínez & K.Gómez</span>
+      <span class="model-tag">@llama3.1:8b</span>
+    </div>
+  
   </main>
 </div>
 
 <div id="toast"></div>
 
 <script>
-const BACKEND = 'http://localhost:8000';
+const BACKEND = '/api';
 let carreraActiva = null;
 let esperando = false;
 let modoOscuro = false;
+
+// ── DRAWER MÓVIL ─────────────────────────
+const sidebar      = document.getElementById('sidebar');
+const overlay      = document.getElementById('sidebarOverlay');
+const btnHamburger = document.getElementById('btnHamburger');
+
+function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('visible'); }
+function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }
+
+btnHamburger.addEventListener('click', openSidebar);
+overlay.addEventListener('click', closeSidebar);
+
+function maybeCloseSidebar() {
+  if (sidebar.classList.contains('open')) closeSidebar();
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 640) closeSidebar();
+});
 
 // ── TEMA ─────────────────────────────────
 const btnToggle = document.getElementById('btnToggle');
@@ -362,7 +478,7 @@ function renderCarreras(carreras) {
     const btn = document.createElement('button');
     btn.className = 'carrera-btn';
     btn.textContent = nombre;
-    btn.addEventListener('click', () => seleccionarCarrera(nombre, btn));
+    btn.addEventListener('click', () => { seleccionarCarrera(nombre, btn); maybeCloseSidebar(); });
     cont.appendChild(btn);
   });
 }
